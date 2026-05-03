@@ -9,7 +9,7 @@ if "GROQ_API_KEY" in st.secrets:
 import base64
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_pinecone import PineconeVectorStore
+from langchain_pinecone.vectorstores import PineconeVectorStore
 
 # ── الديزاين و كده ──────────────────────────
 st.set_page_config(page_title="Virotropic AI", page_icon="🔬", layout="centered")
