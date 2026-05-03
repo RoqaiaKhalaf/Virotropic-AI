@@ -3,6 +3,6 @@ langchain-groq
 langchain-huggingface
 langchain-pinecone
 pinecone
-sentence-transformers
+sentence-transformers==2.2.2
 torch
 torchvision
