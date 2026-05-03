@@ -93,8 +93,10 @@ def build_apa_citation(metadata, doc_content):
 
 # ──  RAG Setup ──────────────────────────────────────────
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"] 
+os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
 INDEX_NAME = "virotropic1"
+
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 vector_store = PineconeVectorStore(
     index_name=INDEX_NAME, 
@@ -102,8 +104,6 @@ vector_store = PineconeVectorStore(
     pinecone_api_key=os.environ["PINECONE_API_KEY"]
 )
 
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-vector_store = PineconeVectorStore(index_name=INDEX_NAME, embedding=embeddings, pinecone_api_key=PINECONE_API_KEY)
 llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
 
 # ── ويلكم يا عزيزي اتفضل اتفرج علي القماش──────────────────────────────────────
