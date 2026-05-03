@@ -88,6 +88,8 @@ def build_apa_citation(metadata, doc_content):
 
 # ──  RAG Setup ──────────────────────────────────────────
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"] # أضيفي هذا السطر
+
 PINECONE_API_KEY = st.secrets["PINECONE_API_KEY"]
 INDEX_NAME = "virotropic1"
 
