@@ -1,6 +1,13 @@
 import streamlit as st
-import base64
 import os
+
+# مش شايفها و عاملي مشاكل ف جبتها فوق اما نشوف اخرتها
+if "PINECONE_API_KEY" in st.secrets:
+    os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
+if "GROQ_API_KEY" in st.secrets:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+
+import base64
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
