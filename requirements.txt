@@ -1,8 +1,8 @@
 streamlit
 langchain-groq
 langchain-huggingface
-langchain-pinecone
-pinecone
-sentence-transformers==2.2.2
+langchain-pinecone>=0.1.1
+pinecone-client>=3.0.0
+sentence-transformers
 torch
 torchvision
