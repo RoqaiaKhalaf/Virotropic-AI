@@ -1,8 +1,10 @@
 streamlit
 langchain-groq
 langchain-huggingface
-langchain-pinecone>=0.1.1
-pinecone-client>=3.0.0
+langchain-pinecone
+pinecone
 sentence-transformers
 torch
 torchvision
+pymupdf
+langchain-community
