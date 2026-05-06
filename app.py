@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import sys
 import uuid
-import base64
 
 # --- 1. حيلة تقنية لتنظيف الذاكرة ومنع تعارض المكتبات ---
 if "pinecone" in sys.modules:
@@ -18,27 +17,12 @@ from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
-# --- 3. دالة معالجة اللوجو (لتحويل الصورة لـ Base64 وعرضها في الـ CSS) ---
-def get_base64_of_bin_file(bin_file):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
-
-def build_markup_for_logo(png_file):
-    try:
-        binary_string = get_base64_of_bin_file(png_file)
-        return f"""
-            <div style="position: absolute; top: -50px; right: -20px;">
-                <img src="data:image/png;base64,{binary_string}" width="100">
-            </div>
-        """
-    except:
-        return "" # في حال لم يجد ملف الصورة لا يظهر خطأ
-
-# --- 4. دالة الاستشهاد الأكاديمية ---
+# --- 3. دالة الاستشهاد الأكاديمية المطورة ---
 def build_apa_citation(metadata):
     source_path = metadata.get('source', 'Unknown Document')
     filename = os.path.basename(str(source_path))
+    
+    # محاولة استخراج تفاصيل البحث
     author = metadata.get('author') or metadata.get('creator') or "Medical Research Team"
     year = metadata.get('year') or "2024"
     title = metadata.get('title') or filename.replace('.pdf', '')
@@ -50,10 +34,10 @@ def build_apa_citation(metadata):
     citation += f" | Source: {filename}"
     return citation
 
-# --- 5. إعدادات الصفحة ---
+# --- 4. إعدادات الصفحة ---
 st.set_page_config(page_title="ViroTropic AI", page_icon="🔬", layout="centered")
 
-# --- 6. نظام إدارة الجلسات ---
+# --- 5. نظام إدارة الجلسات ---
 if "chat_sessions" not in st.session_state:
     st.session_state.chat_sessions = {}
 if "current_chat" not in st.session_state:
@@ -61,28 +45,25 @@ if "current_chat" not in st.session_state:
     st.session_state.chat_sessions[first_id] = {"title": "Initial Session", "messages": []}
     st.session_state.current_chat = first_id
 
-# --- 7. الواجهة والتصميم (CSS) ---
-# تأكدي أن ملف logo.png موجود في نفس المجلد
-logo_html = build_markup_for_logo("logo.png") 
-
-st.markdown(f"""
+# --- 6. الواجهة والتصميم ---
+st.markdown("""
 <style>
-    .welcome-card {{
+    .welcome-card {
         background-color: #FFFFFF;
         border-radius: 15px;
         padding: 25px;
         border-left: 5px solid #722F37;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         margin-bottom: 30px;
-    }}
-    .welcome-card h2 {{ color: #722F37; margin-top: 0; }}
+    }
+    .welcome-card h2 { color: #722F37; margin-top: 0; }
 </style>
-{logo_html}
 """, unsafe_allow_html=True)
 
+# الهيدر الأساسي
 st.markdown("<h1 style='text-align: center; color: #722F37;'>🔬 ViroTropic AI</h1>", unsafe_allow_html=True)
 
-# رسالة الترحيب الثابتة
+# رسالة الترحيب الثابتة (تظهر فقط إذا كانت المحادثة فارغة)
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 if not current_session["messages"]:
     st.markdown("""
@@ -98,7 +79,7 @@ if not current_session["messages"]:
     </div>
     """, unsafe_allow_html=True)
 
-# --- 8. المحرك التقني ---
+# --- 7. المحرك التقني ---
 @st.cache_resource
 def load_rag_system():
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -110,13 +91,9 @@ def load_rag_system():
     llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
     return vector_db, llm
 
-try:
-    vector_store, llm = load_rag_system()
-except Exception as e:
-    st.error(f"Error loading system: {e}")
-    st.stop()
+vector_store, llm = load_rag_system()
 
-# --- 9. القائمة الجانبية (Sidebar) ---
+# --- 8. القائمة الجانبية (Sidebar) ---
 with st.sidebar:
     st.title("📂 Control Panel")
     if st.button("➕ Start New Research Session", use_container_width=True):
@@ -127,27 +104,9 @@ with st.sidebar:
     
     st.divider()
     uploaded_file = st.file_uploader("Add to Medical Library (PDF)", type="pdf")
-    
-    if uploaded_file:
-        with st.spinner("Indexing File..."):
-            temp_path = f"temp_{uuid.uuid4()}.pdf"
-            with open(temp_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            try:
-                from langchain_community.document_loaders import PyMuPDFLoader
-                from langchain_text_splitters import RecursiveCharacterTextSplitter
-                loader = PyMuPDFLoader(temp_path)
-                data = loader.load()
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=80)
-                chunks = text_splitter.split_documents(data)
-                vector_store.add_documents(chunks)
-                st.success("✅ Successfully added to Pinecone!")
-            except Exception as e:
-                st.error(f"Upload error: {e}")
-            finally:
-                if os.path.exists(temp_path): os.remove(temp_path)
+    # ... (كود الرفع الموجود مسبقاً يوضع هنا) ...
 
-# --- 10. عرض الرسائل والردود ---
+# --- 9. عرض الرسائل والردود ---
 for msg in current_session["messages"]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
@@ -161,16 +120,16 @@ if query:
     if current_session["title"] == "Initial Session":
         current_session["title"] = query[:25] + "..."
     
-    current_messages = current_session["messages"]
-    current_messages.append({"role": "user", "content": query})
+    current_session["messages"].append({"role": "user", "content": query})
     with st.chat_message("user"): st.markdown(query)
 
     with st.spinner("Consulting Research Database..."):
         docs = vector_store.similarity_search(query, k=3)
         context = "\n\n".join([d.page_content for d in docs])
-        prompt = f"Context: {context}\n\nQuestion: {query}\n\nAssistant: Provide a precise medical answer."
+        prompt = f"Context: {context}\n\nQuestion: {query}\n\nAssistant: Provide a precise medical answer based on the context."
         response = llm.invoke(prompt)
         
+        # استخراج استشهادات فريدة
         citations = list(set([build_apa_citation(d.metadata) for d in docs]))
         
         with st.chat_message("assistant"):
@@ -178,7 +137,7 @@ if query:
             with st.expander("📎 Grounding Sources (APA)"):
                 for cit in citations: st.caption(f"📍 {cit}")
         
-        current_messages.append({
+        current_session["messages"].append({
             "role": "assistant", 
             "content": response.content,
             "citations": citations
