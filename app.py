@@ -61,6 +61,7 @@ def load_rag_system():
 vector_store, llm = load_rag_system()
 
 # 7. Sidebar (المكان اللي كان فيه خطأ المسافات)
+# تأكدي من محاذاة هذا الجزء تماماً لليسار في ملف app.py
 with st.sidebar:
     st.markdown("<h2 style='color: #722F37;'>💬 Conversations</h2>", unsafe_allow_html=True)
     if st.button("➕ New Chat", use_container_width=True):
@@ -77,10 +78,10 @@ with st.sidebar:
 
     st.divider()
     st.markdown("<h2 style='color: #722F37;'>📂 Research Center</h2>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+    uploaded_file = st.file_uploader("Upload PDF to Pinecone", type="pdf")
     
     if uploaded_file:
-        with st.spinner("Uploading..."):
+        with st.spinner("Processing PDF..."):
             temp_path = f"temp_{uuid.uuid4()}.pdf"
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
@@ -92,12 +93,12 @@ with st.sidebar:
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=80)
                 new_chunks = text_splitter.split_documents(data)
                 vector_store.add_documents(new_chunks)
-                st.success("✅ Done!")
+                st.success(f"✅ '{uploaded_file.name}' added successfully!")
             except Exception as e:
                 st.error(f"Error: {e}")
             finally:
-                if os.path.exists(temp_path): os.remove(temp_path)
-
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 # 8. عرض المحادثة والرد
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 for msg in current_session["messages"]:
