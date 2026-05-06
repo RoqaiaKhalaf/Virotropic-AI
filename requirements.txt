@@ -2,7 +2,7 @@ streamlit
 langchain-groq
 langchain-huggingface
 langchain-pinecone
-pinecone
+pinecone-client
 sentence-transformers
 torch
 torchvision
