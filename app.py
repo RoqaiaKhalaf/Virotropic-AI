@@ -3,142 +3,130 @@ import os
 import sys
 import uuid
 
-# --- 1. إصلاح تضارب المكتبات وحمل المفاتيح ---
+# 1. حيلة تقنية لإجبار السيرفر على نسيان أي نسخة قديمة من Pinecone
 if "pinecone" in sys.modules:
     del sys.modules["pinecone"]
 
+# 2. إعداد المفاتيح من الـ Secrets أولاً
 if "GROQ_API_KEY" in st.secrets:
     os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 if "PINECONE_API_KEY" in st.secrets:
     os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
 
+# 3. الآن نقوم بالاستيراد (Import)
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
-# --- 2. إعدادات الصفحة ---
+# 4. إعدادات الصفحة والتصميم
 st.set_page_config(page_title="ViroTropic AI", page_icon="🔬", layout="centered")
 
-# --- 3. نظام الـ Sessions (إصلاح مشكلة الشات الجديد) ---
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;700&display=swap');
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FAF4E8; }
+.hero { text-align: center; padding: 2rem; border-bottom: 2px solid #722F37; margin-bottom: 2rem; }
+.hero h1 { font-family: 'Playfair Display', serif; color: #722F37; font-size: 2.5rem; }
+</style>
+<div class="hero">
+    <h1>🔬 ViroTropic AI</h1>
+    <p style="color: #8B6B6E;">Intelligent Medical Research Assistant</p>
+</div>
+""", unsafe_allow_html=True)
+
+# 5. إدارة جلسات الدردشة
 if "chat_sessions" not in st.session_state:
-    initial_id = str(uuid.uuid4())
-    st.session_state.chat_sessions = {initial_id: {"title": "Initial Session", "messages": []}}
-    st.session_state.current_chat = initial_id
+    st.session_state.chat_sessions = {}
+if "current_chat" not in st.session_state:
+    first_id = str(uuid.uuid4())
+    st.session_state.chat_sessions[first_id] = {"title": "New Chat", "messages": []}
+    st.session_state.current_chat = first_id
 
-# دوال التحكم في الشات (Callbacks)
-def create_new_chat():
-    new_id = str(uuid.uuid4())
-    st.session_state.chat_sessions[new_id] = {"title": "New Research", "messages": []}
-    st.session_state.current_chat = new_id
-
-def switch_to_chat(chat_id):
-    st.session_state.current_chat = chat_id
-
-# --- 4. دالة الاستشهاد (APA Style) ---
-def build_apa_citation(metadata):
-    # استخراج البيانات أو وضع قيم افتراضية ذكية
-    source_path = metadata.get('source', 'Unknown')
-    filename = os.path.basename(str(source_path))
-    
-    author = metadata.get('author') or "Medical Expert"
-    # استخراج السنة من الـ metadata أو من اسم الملف لو موجودة
-    year = metadata.get('year') or "2024"
-    title = metadata.get('title') or filename.split('.')[0]
-    page = metadata.get('page')
-
-    # تنسيق APA: Author (Year). Title.
-    citation = f"**{author} ({year}).** *{title}*."
-    if page is not None:
-        citation += f" (Page {int(page) + 1})."
-    
-    citation += f" Source File: {filename}"
-    return citation
-
-# --- 5. الواجهة (UI) ---
-st.markdown("<h1 style='text-align: center; color: #722F37;'>🔬 ViroTropic AI</h1>", unsafe_allow_html=True)
-
-# --- 6. المحرك التقني ---
+# 6. المحرك التقني (RAG System)
 @st.cache_resource
 def load_rag_system():
+    # تأكدي أن هذا الموديل متوافق مع البيانات المرفوعة
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    INDEX_NAME = "virotropic1"
+    
     vector_db = PineconeVectorStore(
-        index_name="virotropic1", 
-        embedding=embeddings, 
+        index_name=INDEX_NAME,
+        embedding=embeddings,
         pinecone_api_key=os.environ["PINECONE_API_KEY"]
     )
     llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
     return vector_db, llm
 
-vector_store, llm = load_rag_system()
+# محاولة تشغيل النظام
+try:
+    vector_store, llm = load_rag_system()
+except Exception as e:
+    st.error(f"Initialization Error: {e}")
+    st.stop()
 
-# --- 7. القائمة الجانبية (إصلاح الحفظ والتنقل) ---
+# 7. القائمة الجانبية (Sidebar)
 with st.sidebar:
-    st.markdown("### 💬 Chat Management")
-    # زرار الشات الجديد لازم يستخدم on_click
-    st.button("➕ Start New Research", on_click=create_new_chat, use_container_width=True)
-    
-    st.divider()
-    st.markdown("### 🕒 History")
-    for chat_id, chat_data in st.session_state.chat_sessions.items():
+    st.markdown("<h2 style='color: #722F37;'>💬 Conversations</h2>", unsafe_allow_html=True)
+    if st.button("➕ New Chat", use_container_width=True):
+        new_id = str(uuid.uuid4())
+        st.session_state.chat_sessions[new_id] = {"title": "New Chat", "messages": []}
+        st.session_state.current_chat = new_id
+        st.rerun()
+
+    for chat_id, chat_data in list(st.session_state.chat_sessions.items()):
         is_active = (chat_id == st.session_state.current_chat)
-        # زرار التبديل بين المحادثات
-        st.button(
-            chat_data["title"], 
-            key=f"btn_{chat_id}", 
-            on_click=switch_to_chat, 
-            args=(chat_id,),
-            type="primary" if is_active else "secondary",
-            use_container_width=True
-        )
+        if st.button(chat_data["title"], key=f"chat_{chat_id}", use_container_width=True, 
+                     type="primary" if is_active else "secondary"):
+            st.session_state.current_chat = chat_id
+            st.rerun()
 
     st.divider()
-    uploaded_file = st.sidebar.file_uploader("Upload to Library", type="pdf")
+    st.markdown("<h3 style='color: #722F37;'>📂 Upload Research</h3>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+    
     if uploaded_file:
-        # كود الرفع الخاص بكِ كما هو...
-        pass
+        with st.spinner("Processing PDF..."):
+            temp_path = f"temp_{uuid.uuid4()}.pdf"
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            try:
+                from langchain_community.document_loaders import PyMuPDFLoader
+                from langchain_text_splitters import RecursiveCharacterTextSplitter
+                loader = PyMuPDFLoader(temp_path)
+                data = loader.load()
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=80)
+                chunks = text_splitter.split_documents(data)
+                vector_store.add_documents(chunks)
+                st.success("✅ Indexed Successfully!")
+            except Exception as e:
+                st.error(f"Upload Error: {e}")
+            finally:
+                if os.path.exists(temp_path): os.remove(temp_path)
 
-# --- 8. منطقة عرض المحادثة ---
-current_chat = st.session_state.chat_sessions[st.session_state.current_chat]
-
-# رسالة ترحيب لو الشات فاضي
-if not current_chat["messages"]:
-    st.info("👋 Welcome! Ready to analyze your tropical medicine documents.")
-
-for msg in current_chat["messages"]:
+# 8. منطقة الدردشة
+current_session = st.session_state.chat_sessions[st.session_state.current_chat]
+for msg in current_session["messages"]:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-        if msg.get("citations"):
-            with st.expander("📎 Grounding Sources (APA Style)"):
-                for cit in msg["citations"]:
-                    st.markdown(f"- {cit}")
 
-# --- 9. منطقة الإدخال ---
-query = st.chat_input("Ask a medical question...")
-
+query = st.chat_input("Ask about Tropical Medicine...")
 if query:
-    # تحديث عنوان الشات بأول سؤال
-    if not current_chat["messages"]:
-        current_chat["title"] = query[:25] + "..."
-
-    current_chat["messages"].append({"role": "user", "content": query})
+    if current_session["title"] == "New Chat":
+        current_session["title"] = query[:25] + "..."
+        
+    current_session["messages"].append({"role": "user", "content": query})
     with st.chat_message("user"): st.markdown(query)
 
-    with st.spinner("Searching..."):
+    with st.spinner("Analyzing research..."):
         docs = vector_store.similarity_search(query, k=3)
         context = "\n\n".join([d.page_content for d in docs])
-        response = llm.invoke(f"Context: {context}\n\nQuestion: {query}")
-        
-        # تحويل الميتاداتا الخام لاستشهادات APA
-        apa_citations = list(set([build_apa_citation(d.metadata) for d in docs]))
+        prompt = f"Context: {context}\n\nQuestion: {query}\n\nAnswer like a medical professional:"
+        response = llm.invoke(prompt)
         
         with st.chat_message("assistant"):
             st.markdown(response.content)
-            with st.expander("📎 Grounding Sources (APA Style)"):
-                for cit in apa_citations:
-                    st.markdown(f"- {cit}")
+            with st.expander("📎 Sources"):
+                for d in docs:
+                    st.caption(f"📍 From: {os.path.basename(str(d.metadata.get('source', 'Unknown')))}")
 
-        current_chat["messages"].append({
-            "role": "assistant", 
-            "content": response.content,
-            "citations": apa_citations
-        })
+        current_session["messages"].append({"role": "assistant", "content": response.content})
