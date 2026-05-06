@@ -53,12 +53,26 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;700&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FAF4E8; }
-.hero { text-align: center; padding: 1.5rem; border-bottom: 2px solid #722F37; margin-bottom: 1.5rem; }
-.hero h1 { font-family: 'Playfair Display', serif; color: #722F37; font-size: 2.2rem; margin: 0; }
+.hero { text-align: center; padding: 1rem 1.5rem; border-bottom: 2px solid #722F37; margin-bottom: 1.5rem; }
+.hero h1 { font-family: 'Playfair Display', serif; color: #722F37; font-size: 2.2rem; margin: 5px 0; }
 .welcome-box { background: white; padding: 20px; border-radius: 10px; border-left: 5px solid #722F37; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.logo-container { display: flex; justify-content: center; margin-bottom: -10px; }
 </style>
+""", unsafe_allow_html=True)
+
+# إضافة اللوجو والهيدر بشكل مدمج
+with st.container():
+    # عرض اللوجو فوق العنوان
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        try:
+            st.image("logo.png", width=120)
+        except:
+            st.write("<div style='text-align:center; font-size:3rem;'>🔬</div>", unsafe_allow_html=True)
+
+st.markdown("""
 <div class="hero">
-    <h1>🔬 ViroTropic AI</h1>
+    <h1>ViroTropic AI</h1>
     <p style="color: #8B6B6E; font-weight: bold;">Intelligent Medical Research Assistant</p>
 </div>
 """, unsafe_allow_html=True)
@@ -116,7 +130,7 @@ with st.sidebar:
 current_chat_id = st.session_state.current_chat
 session = st.session_state.chat_sessions[current_chat_id]
 
-# --- رسالة الترحيب الثابتة (تظهر فقط لو الشات فاضي) ---
+# --- رسالة الترحيب الثابتة ---
 if not session["messages"]:
     st.markdown("""
     <div class="welcome-box">
@@ -145,7 +159,6 @@ if query:
         context = "\n\n".join([d.page_content for d in docs])
         response = llm.invoke(f"Context: {context}\n\nQuestion: {query}\n\nAnswer professionally:")
         
-        # تجهيز الاستشهادات بأسلوب APA
         apa_citations = list(set([format_apa(d.metadata) for d in docs]))
         
         with st.chat_message("assistant"):
