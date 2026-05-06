@@ -12,7 +12,6 @@ if "PINECONE_API_KEY" in st.secrets:
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
-
 # 2. إعدادات الصفحة
 st.set_page_config(page_title="ViroTropic AI", page_icon="🔬", layout="centered")
 
