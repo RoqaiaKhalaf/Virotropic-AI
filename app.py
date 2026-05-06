@@ -3,12 +3,13 @@ import os
 import base64
 import uuid
 
-# 1. إعداد المفاتيح (Secrets)
+# 1. إعداد المفاتيح من Secrets
 if "GROQ_API_KEY" in st.secrets:
     os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 if "PINECONE_API_KEY" in st.secrets:
     os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
 
+# استدعاء المكتبات بعد إعداد مفاتيح البيئة
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
@@ -25,14 +26,14 @@ if "current_chat" not in st.session_state:
     st.session_state.current_chat = first_id
 
 # 4. التصميم CSS
-st.markdown(f"""
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;700&display=swap');
-html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; background-color: #FAF4E8; color: #2D1B1E; }}
-.hero {{ display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2.5rem 0 1.8rem; border-bottom: 2px solid #722F37; margin-bottom: 2rem; text-align: center; }}
-.hero h1 {{ font-family: 'Playfair Display', serif; font-size: 2.6rem; color: #722F37; margin: 0; }}
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) .stMarkdown {{ background: #722F37; border-radius: 16px 16px 4px 16px; padding: 0.9rem 1.2rem; color: #FAF4E8; }}
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) .stMarkdown {{ background: #FFFFFF; border: 1px solid #E8DECE; border-left: 3px solid #722F37; border-radius: 4px 16px 16px 16px; padding: 0.9rem 1.2rem; }}
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #FAF4E8; color: #2D1B1E; }
+.hero { display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2.5rem 0 1.8rem; border-bottom: 2px solid #722F37; margin-bottom: 2rem; text-align: center; }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: 2.6rem; color: #722F37; margin: 0; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) .stMarkdown { background: #722F37; border-radius: 16px 16px 4px 16px; padding: 0.9rem 1.2rem; color: #FAF4E8; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) .stMarkdown { background: #FFFFFF; border: 1px solid #E8DECE; border-left: 3px solid #722F37; border-radius: 4px 16px 16px 16px; padding: 0.9rem 1.2rem; }
 </style>
 <div class="hero">
     <h1>🔬 ViroTropic AI</h1>
@@ -41,16 +42,15 @@ html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; background-color
 """, unsafe_allow_html=True)
 
 # 5. منطق الاستشهاد (APA Citation)
-def build_apa_citation(metadata, doc_content):
+def build_apa_citation(metadata):
     author = metadata.get('author') or "Medical Expert"
     year = metadata.get('year') or "2024"
     source = metadata.get('source') or "Research Paper"
-    return f"{author}. ({year}). *Study on Tropical Medicine*. Source: {os.path.basename(source)}."
+    return f"{author}. ({year}). *Tropical Medicine Resource*. Source: {os.path.basename(str(source))}."
 
 # 6. المحرك التقني (Groq + Pinecone)
 @st.cache_resource
 def load_rag_system():
-    # الموديل اللي استخدمناه في رفع البيانات
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     INDEX_NAME = "virotropic1"
     vector_db = PineconeVectorStore(
@@ -73,7 +73,7 @@ with st.sidebar:
         st.rerun()
 
     for chat_id, chat_data in list(st.session_state.chat_sessions.items()):
-        is_active = chat_id == st.session_state.current_chat
+        is_active = (chat_id == st.session_state.current_chat)
         if st.button(chat_data["title"], key=f"chat_{chat_id}", use_container_width=True, type="primary" if is_active else "secondary"):
             st.session_state.current_chat = chat_id
             st.rerun()
@@ -83,7 +83,7 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload PDF to Pinecone", type="pdf")
     
     if uploaded_file:
-        with st.spinner("Processing PDF and indexing in Pinecone..."):
+        with st.spinner("Processing PDF..."):
             temp_path = f"temp_{uuid.uuid4()}.pdf"
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
@@ -95,11 +95,12 @@ with st.sidebar:
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=80)
                 new_chunks = text_splitter.split_documents(data)
                 vector_store.add_documents(new_chunks)
-                st.success(f"✅ '{uploaded_file.name}' added successfully!")
+                st.success(f"✅ '{uploaded_file.name}' added to Pinecone!")
             except Exception as e:
                 st.error(f"Error: {e}")
             finally:
-                if os.path.exists(temp_path): os.remove(temp_path)
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
 # 8. عرض المحادثة
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
@@ -110,7 +111,8 @@ for message in current_messages:
         st.markdown(message["content"])
         if message.get("citations"):
             with st.expander("📎 Academic Citations"):
-                for cit in message["citations"]: st.caption(f"📍 {cit}")
+                for cit in message["citations"]:
+                    st.caption(f"📍 {cit}")
 
 # 9. منطقة الكتابة (Chat Input)
 query = st.chat_input("Ask about Tropical Diseases...")
@@ -120,7 +122,8 @@ if query:
         current_session["title"] = query[:30] + "..."
     
     current_messages.append({"role": "user", "content": query})
-    with st.chat_message("user"): st.write(query)
+    with st.chat_message("user"):
+        st.write(query)
 
     with st.spinner("Searching Research Database..."):
         docs = vector_store.similarity_search(query, k=3)
@@ -128,11 +131,17 @@ if query:
         prompt = f"Context:\n{context}\n\nQuestion: {query}\n\nAnswer professionally:"
         response = llm.invoke(prompt)
         
-        citations = [build_apa_citation(d.metadata, d.page_content) for d in docs]
+        citations = [build_apa_citation(d.metadata) for d in docs]
         
         with st.chat_message("assistant"):
             st.markdown(response.content)
-            with st.expander("📎 Academic Citations"):
-                for cit in citations: st.caption(f"📍 {cit}")
+            if citations:
+                with st.expander("📎 Academic Citations"):
+                    for cit in citations:
+                        st.caption(f"📍 {cit}")
         
-        current_messages.append({"role": "assistant", "content": response.content, "citations": citations})
+        current_messages.append({
+            "role": "assistant", 
+            "content": response.content, 
+            "citations": citations
+        })
