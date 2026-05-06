@@ -105,7 +105,7 @@ with st.sidebar:
                 from langchain_text_splitters import RecursiveCharacterTextSplitter
                 loader = PyMuPDFLoader(temp_path)
                 data = loader.load()
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
                 chunks = text_splitter.split_documents(data)
                 vector_store.add_documents(chunks)
                 st.success("✅ Added!")
@@ -120,9 +120,8 @@ session = st.session_state.chat_sessions[current_chat_id]
 if not session["messages"]:
     st.markdown("""
     <div class="welcome-box">
-        <h3 style="margin-top:0; color:#722F37;">Welcome to ViroTropic! 👋</h3>
-        <p>I am your AI assistant specialized in Tropical Medicine. I can help you analyze medical papers and surveillance reports.</p>
-        <p style="font-size:0.9rem; color:#666;"><b>Try asking:</b> "What are the common symptoms of Dengue?" or "Summarize the findings on Norovirus."</p>
+        <h3 style="margin-top:0; color:#722F37;">Welcome to ViroTropic!</h3>
+        <p>I am your AI assistant specialized in Tropical Medicine, so how can i help you today?</p>
     </div>
     """, unsafe_allow_html=True)
 
