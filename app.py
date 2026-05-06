@@ -107,7 +107,46 @@ with st.sidebar:
                 st.session_state.current_chat = chat_id
                 st.rerun()
         # ... (باقي كود الـ Rename/Delete كما هو في الكود الذي أرفقتِه) ...
-
+st.divider()
+    st.markdown("<h2 style='color: #722F37;'>📂 Research Center</h2>", unsafe_allow_html=True)
+    st.write("Upload new papers to Pinecone database.")
+    
+    uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+    
+    if uploaded_file:
+        with st.spinner("Processing document and uploading to Pinecone..."):
+            # 1. حفظ الملف مؤقتاً
+            temp_path = f"temp_{uuid.uuid4()}.pdf"
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            
+            try:
+                # 2. استدعاء مكتبات المعالجة
+                from langchain_community.document_loaders import PyMuPDFLoader
+                from langchain_text_splitters import RecursiveCharacterTextSplitter
+                
+                # 3. تحميل وتقسيم الملف
+                loader = PyMuPDFLoader(temp_path)
+                data = loader.load()
+                
+                # إعداد التقسيم (Chunks)
+                text_splitter = RecursiveCharacterTextSplitter(
+                    chunk_size=800, 
+                    chunk_overlap=80
+                )
+                new_chunks = text_splitter.split_documents(data)
+                
+                # 4. الرفع إلى Pinecone (سيستخدم الـ embeddings المعرفة مسبقاً)
+                vector_store.add_documents(new_chunks)
+                
+                st.success(f"✅ '{uploaded_file.name}' is now indexed in Pinecone!")
+                
+            except Exception as e:
+                st.error(f"Error during upload: {e}")
+            finally:
+                # 5. مسح الملف المؤقت من السيرفر
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 # ── 9. نظام المحادثة (الربط مع Groq) ──────────────────────────────────────
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 current_messages = current_session["messages"]
