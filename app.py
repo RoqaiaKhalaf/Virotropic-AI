@@ -130,12 +130,12 @@ with st.sidebar:
             if st.session_state.renaming_chat == chat_id:
                 new_name = st.text_input("New name:", value=chat_data["title"], key=f"ren_{chat_id}")
                 c1, c2 = st.columns(2)
-                if c1.button("✅", key=f"save_{chat_id}"):
+                if c1.button("✅ Done", key=f"save_{chat_id}"):
                     if new_name.strip(): st.session_state.chat_sessions[chat_id]["title"] = new_name.strip()
                     st.session_state.renaming_chat = None
                     st.session_state.open_menu = None
                     st.rerun()
-                if c2.button("✖", key=f"can_{chat_id}"):
+                if c2.button("✖ close", key=f"can_{chat_id}"):
                     st.session_state.renaming_chat = None
                     st.rerun()
             else:
@@ -151,7 +151,7 @@ with st.sidebar:
 
     st.divider()
     st.markdown("<h3 style='color: #722F37;'>📂 Research Center</h3>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+    uploaded_file = st.file_uploader("Upload new papers to expand my knowledge base", type="pdf")
     if uploaded_file:
         with st.spinner("Indexing..."):
             temp_path = f"temp_{uuid.uuid4()}.pdf"
