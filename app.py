@@ -170,9 +170,26 @@ with st.sidebar:
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 current_messages = current_session["messages"]
 
+# --- تعديل رسالة الترحيب لتطابق الصورة ---
 if not current_messages:
-    welcome = "Welcome to ViroTropic AI. I am ready to assist you in exploring tropical disease research."
-    current_messages.append({"role": "assistant", "content": welcome, "citations": []})
+    welcome_html = """
+    <div style="background-color: white; padding: 25px; border-radius: 15px; border-left: 5px solid #722F37; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px;">
+        <h2 style="color: #722F37; margin-top: 0; font-family: 'Playfair Display', serif;">Welcome to ViroTropic!</h2>
+        <p style="color: #2D1B1E; font-size: 1.1rem; line-height: 1.6;">
+            I am your AI assistant specialized in <b>Tropical Medicine</b>.<br>
+            I can help you analyze research papers, understand disease patterns, or answer clinical questions based on your database.
+        </p>
+        <hr style="border: 0; border-top: 1px solid #E8DECE; margin: 15px 0;">
+        <p style="color: #8B6B6E; font-style: italic; font-size: 0.9rem;">
+            How can I help you with your research today?
+        </p>
+    </div>
+    """
+    # عرض الرسالة كـ Markdown مع HTML
+    st.markdown(welcome_html, unsafe_allow_html=True)
+    
+    # إضافة الرسالة للـ session_state عشان ما تظهرش تاني لما المحادثة تبدأ (اختياري)
+    # لو عايزة الرسالة تفضل ثابتة فوق أول شات، سيبي الكود زي ما هو
 
 for message in current_messages:
     with st.chat_message(message["role"]):
@@ -180,7 +197,6 @@ for message in current_messages:
         if message.get("citations"):
             with st.expander("📎 Academic Citations (APA)"):
                 for cit in message["citations"]: st.caption(f"📍 {cit}")
-
 # ── 10. الإدخال والمعالجة ────────────────────────────────────────────────
 query = st.chat_input("Ask a medical question...")
 
