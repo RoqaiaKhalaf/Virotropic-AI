@@ -140,17 +140,17 @@ with st.sidebar:
                     st.rerun()
             else:
                 m1, m2 = st.columns(2)
-                if m1.button("✏️", key=f"ed_{chat_id}"):
+                if m1.button("✏️ Rename", key=f"ed_{chat_id}"):
                     st.session_state.renaming_chat = chat_id
                     st.rerun()
-                if m2.button("🗑️", key=f"del_{chat_id}"):
+                if m2.button("🗑️ Delete", key=f"del_{chat_id}"):
                     del st.session_state.chat_sessions[chat_id]
                     if st.session_state.current_chat == chat_id:
                         st.session_state.current_chat = list(st.session_state.chat_sessions.keys())[0] if st.session_state.chat_sessions else None
                     st.rerun()
 
     st.divider()
-    st.markdown("<h3 style='color: #722F37;'>📂 Upload Center</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #722F37;'>📂 Research Center</h3>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload PDF", type="pdf")
     if uploaded_file:
         with st.spinner("Indexing..."):
@@ -160,7 +160,7 @@ with st.sidebar:
                 from langchain_community.document_loaders import PyMuPDFLoader
                 from langchain_text_splitters import RecursiveCharacterTextSplitter
                 loader = PyMuPDFLoader(temp_path)
-                chunks = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100).split_documents(loader.load())
+                chunks = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150).split_documents(loader.load())
                 vector_store.add_documents(chunks)
                 st.success("✅ Document Integrated")
             finally:
