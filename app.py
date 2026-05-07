@@ -167,36 +167,19 @@ with st.sidebar:
                 if os.path.exists(temp_path): os.remove(temp_path)
 
 # ── 9. عرض المحادثة ─────────────────────────────────────────────────────
-# ── 9. عرض المحادثة (تصميم رسالة الترحيب الصندوقية) ─────────────────────
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 current_messages = current_session["messages"]
 
 if not current_messages:
-    # الصندوق الأحمر اللي في الصورة
-    st.markdown("""
-    <div style="
-        background-color: #722F37; 
-        color: white; 
-        padding: 15px 25px; 
-        border-radius: 10px; 
-        font-family: 'Inter', sans-serif;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    ">
-        <h3 style="margin: 0; color: white; font-size: 1.3rem;">
-            Welcome to ViroTropic AI
-        </h3>
-        <p style="margin: 5px 0 0; opacity: 0.9; font-size: 0.95rem;">
-            I am your AI assistant specialized in Tropical Medicine, so how can I help you today?
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    welcome = "Welcome to ViroTropic AI. I am ready to assist you in exploring tropical disease research."
+    current_messages.append({"role": "assistant", "content": welcome, "citations": []})
 
-
-# عرض الرسائل القديمة
 for message in current_messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
+        if message.get("citations"):
+            with st.expander("📎 Academic Citations (APA)"):
+                for cit in message["citations"]: st.caption(f"📍 {cit}")
 
 # ── 10. الإدخال والمعالجة ────────────────────────────────────────────────
 query = st.chat_input("Ask about Tropical disease, Malaria or Research paper...")
