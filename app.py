@@ -171,9 +171,64 @@ current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 current_messages = current_session["messages"]
 
 if not current_messages:
-    welcome = "Welcome to ViroTropic AI. I am ready to assist you in exploring tropical disease research."
-    current_messages.append({"role": "assistant", "content": welcome, "citations": []})
+    # الجزء العلوي: الأيقونة والعنوان
+    st.markdown(f"""
+    <div style="text-align: center; padding-top: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 10px;">🔬</div>
+        <h2 style="color: #722F37; font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 2rem;">
+            How can I help you today?
+        </h2>
+    </div>
+    """, unsafe_allow_html=True)
 
+    # صف البطاقات (3 أعمدة كما في الصورة)
+    col1, col2, col3 = st.columns(3)
+
+    card_style = """
+        background-color: #FFFFFF;
+        border: 1px solid #E8DECE;
+        border-radius: 12px;
+        padding: 15px;
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: transform 0.2s;
+    """
+
+    with col1:
+        st.markdown(f"""
+        <div style="{card_style}">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">📝</div>
+            <div style="font-size: 0.85rem; color: #2D1B1E; font-weight: 500;">
+                Summarize research papers about Malaria outbreaks
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"""
+        <div style="{card_style}">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">💡</div>
+            <div style="font-size: 0.85rem; color: #2D1B1E; font-weight: 500;">
+                Explain the latest trends in Tropical Medicine
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+        <div style="{card_style}">
+            <div style="font-size: 1.2rem; margin-bottom: 5px;">📜</div>
+            <div style="font-size: 0.85rem; color: #2D1B1E; font-weight: 500;">
+                Generate APA citations for my medical documents
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<div style='margin-bottom: 3rem;'></div>", unsafe_allow_html=True)
+
+# عرض الرسائل القديمة كما هي
 for message in current_messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
