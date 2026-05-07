@@ -167,19 +167,73 @@ with st.sidebar:
                 if os.path.exists(temp_path): os.remove(temp_path)
 
 # ── 9. عرض المحادثة ─────────────────────────────────────────────────────
+# ── 9. عرض المحادثة (تصميم العنوان الأحمر والصندوق المنسق) ──────────────────
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 current_messages = current_session["messages"]
 
 if not current_messages:
-    welcome = "Welcome to ViroTropic AI. I am ready to assist you in exploring tropical disease research."
-    current_messages.append({"role": "assistant", "content": welcome, "citations": []})
+    # العنوان الأحمر البارز
+    st.markdown("""
+        <h1 style="
+            color: #722F37; 
+            font-family: 'Playfair Display', serif; 
+            font-size: 2.8rem; 
+            font-weight: 800; 
+            margin-bottom: 5px;
+            text-align: left;
+        ">
+            Welcome to ViroTropic AI
+        </h1>
+    """, unsafe_allow_html=True)
 
+    # الصندوق الترحيبي (بلون خلفية خفيف أو شفاف مع حدود حمراء)
+    st.markdown("""
+    <div style="
+        background-color: #722F37; 
+        color: white; 
+        padding: 25px; 
+        border-radius: 15px; 
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(114, 47, 55, 0.1);
+    ">
+        <p style="
+            margin: 0; 
+            font-size: 1.15rem; 
+            line-height: 1.6;
+            opacity: 0.95;
+            font-family: 'Inter', sans-serif;
+        ">
+            I am your AI assistant specialized in Tropical Medicine, so how can I help you today?
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # البطاقات الثلاثة (Suggestions)
+    col1, col2, col3 = st.columns(3)
+    card_style = """
+        background-color: white; 
+        border: 1px solid #E8DECE; 
+        border-radius: 12px; 
+        padding: 20px; 
+        height: 120px;
+        font-size: 0.9rem;
+        color: #2D1B1E;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    """
+    
+    with col1:
+        st.markdown(f'<div style="{card_style}">Summarize research papers about Malaria outbreaks</div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<div style="{card_style}">Explain the latest trends in Tropical Medicine</div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown(f'<div style="{card_style}">Generate APA citations for my medical documents</div>', unsafe_allow_html=True)
+
+# عرض الرسائل في حال وجود محادثة
 for message in current_messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
-        if message.get("citations"):
-            with st.expander("📎 Academic Citations (APA)"):
-                for cit in message["citations"]: st.caption(f"📍 {cit}")
 
 # ── 10. الإدخال والمعالجة ────────────────────────────────────────────────
 query = st.chat_input("Ask about Tropical disease, Malaria or Research paper...")
