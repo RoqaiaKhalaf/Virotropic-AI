@@ -166,40 +166,14 @@ with st.sidebar:
             finally:
                 if os.path.exists(temp_path): os.remove(temp_path)
 
-# ── 9. عرض المحادثة (رسالة الترحيب المحدثة) ─────────────────────────────
+# ── 9. عرض المحادثة ─────────────────────────────────────────────────────
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 current_messages = current_session["messages"]
 
-# تصميم رسالة الترحيب الجديدة
 if not current_messages:
-    st.markdown(f"""
-    <div style="text-align: center; padding: 2rem 0;">
-        <div style="font-size: 3.5rem; margin-bottom: 1rem;">🔬</div>
-        <h2 style="color: #722F37; font-family: 'Playfair Display', serif; font-size: 2.2rem;">How can I help you today?</h2>
-        <p style="color: #8B6B6E; font-size: 1.1rem; max-width: 500px; margin: 0 auto 2rem;">
-            I am your specialized assistant in Tropical Medicine research. Ask me about papers, diseases, or citations.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    welcome = "Welcome to ViroTropic AI. I am ready to assist you in exploring tropical disease research."
+    current_messages.append({"role": "assistant", "content": welcome, "citations": []})
 
-    # إضافة مربعات الاقتراحات (Quick Suggestions)
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("""
-        <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #E8DECE; margin-bottom: 10px;">
-            <h4 style="margin: 0; color: #722F37; font-size: 0.9rem;">🔍 Research Analysis</h4>
-            <p style="margin: 5px 0 0; color: #8B6B6E; font-size: 0.8rem;">Summarize recent findings on Dengue fever outbreaks.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-        <div style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #E8DECE; margin-bottom: 10px;">
-            <h4 style="margin: 0; color: #722F37; font-size: 0.9rem;">📖 APA Citations</h4>
-            <p style="margin: 5px 0 0; color: #8B6B6E; font-size: 0.8rem;">Generate a proper citation for the uploaded medical study.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-# عرض الرسائل السابقة (إن وجدت)
 for message in current_messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
@@ -208,7 +182,7 @@ for message in current_messages:
                 for cit in message["citations"]: st.caption(f"📍 {cit}")
 
 # ── 10. الإدخال والمعالجة ────────────────────────────────────────────────
-query = st.chat_input("Ask a medical question...")
+query = st.chat_input("Ask about Tropical disease, Malaria or Research paper...")
 
 if query:
     if current_session["title"] == "New Chat":
