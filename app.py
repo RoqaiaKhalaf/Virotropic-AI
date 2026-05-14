@@ -4,7 +4,7 @@ import sys
 import uuid
 import base64
 
-# ── 1. إعداد المكتبات والأدوات (Pinecone & Groq) ──────────────────────
+# ── 1. (Pinecone & Groq) ──────────────────────
 if "pinecone" in sys.modules:
     del sys.modules["pinecone"]
 
@@ -17,10 +17,10 @@ from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
-# ── 2. إعدادات الصفحة ─────────────────────────────────────────────────────
+# ── 2. Heading ─────────────────────────────────────────────────────
 st.set_page_config(page_title="ViroTropic AI", page_icon="🔬", layout="centered", initial_sidebar_state="expanded")
 
-# ── 3. نظام إدارة الجلسات والمنيو ─────────────────────────────────────────
+# ── 3. Sessions & Menu ─────────────────────────────────────────
 if "chat_sessions" not in st.session_state:
     st.session_state.chat_sessions = {}
 if "current_chat" not in st.session_state:
@@ -33,7 +33,7 @@ if "open_menu" not in st.session_state:
 if "renaming_chat" not in st.session_state:
     st.session_state.renaming_chat = None
 
-# ── 4. تحميل اللوجو ───────────────────────────────────────────────────────
+# ── 4. logo ───────────────────────────────────────────────────────
 def get_logo_base64(path="logo.png"):
     try:
         with open(path, "rb") as f:
@@ -45,7 +45,7 @@ def get_logo_base64(path="logo.png"):
 logo_src = get_logo_base64()
 logo_html = f'<img src="{logo_src}" style="height:52px; vertical-align:middle; margin-right:12px;">' if logo_src else "🔬"
 
-# ── 5. التصميم CSS (نفس الستايل المطور) ──────────────────────────────────
+# ── 5. CSS ──────────────────────────────────
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;700&display=swap');
@@ -76,7 +76,7 @@ button[kind="primary"] {{
 </div>
 """, unsafe_allow_html=True)
 
-# ── 6. منطق الاستشهاد APA ──────────────────────────────────────────────
+# ── 6. APA ──────────────────────────────────────────────
 def build_apa_citation(metadata):
     author = metadata.get('author') or metadata.get('creator') or "Unknown Author"
     year = metadata.get('year') or "2024"
@@ -89,7 +89,7 @@ def build_apa_citation(metadata):
     cite += f" [Source: {source}]"
     return cite
 
-# ── 7. المحرك التقني (Pinecone & Groq) ──────────────────────────────────
+# ── 7. RAG system (Pinecone & Groq) ──────────────────────────────────
 @st.cache_resource
 def load_rag_system():
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -103,7 +103,7 @@ def load_rag_system():
 
 vector_store, llm = load_rag_system()
 
-# ── 8. القائمة الجانبية (Conversations Management) ───────────────────────
+# ── 8. (Conversations Management) ───────────────────────
 with st.sidebar:
     st.markdown("<h2 style='color: #722F37;'>💬 Conversations</h2>", unsafe_allow_html=True)
     
@@ -166,7 +166,7 @@ with st.sidebar:
             finally:
                 if os.path.exists(temp_path): os.remove(temp_path)
 
-# ── 9. عرض المحادثة ─────────────────────────────────────────────────────
+# ── 9. Chat histroy ─────────────────────────────────────────────────────
 current_session = st.session_state.chat_sessions[st.session_state.current_chat]
 current_messages = current_session["messages"]
 
@@ -181,7 +181,7 @@ for message in current_messages:
             with st.expander("📎 Academic Citations (APA)"):
                 for cit in message["citations"]: st.caption(f"📍 {cit}")
 
-# ── 10. الإدخال والمعالجة ────────────────────────────────────────────────
+# ── 10. User Input ────────────────────────────────────────────────
 query = st.chat_input("Ask about Tropical disease, Malaria or Research paper...")
 
 if query:
